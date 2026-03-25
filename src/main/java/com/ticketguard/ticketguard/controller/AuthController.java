@@ -14,18 +14,31 @@ public class AuthController {
 
     private final AuthService authService;
 
-    @PostMapping("/send-otp")
-    public ResponseEntity<Map<String, String>> sendOtp(@RequestBody Map<String, String> request) {
-        String phone = request.get("phone");
-        authService.sendOtp(phone);
-        return ResponseEntity.ok(Map.of("message", "OTP sent successfully"));
+    // ─────────────────────────────────────────
+    // REGISTRATION
+    // ─────────────────────────────────────────
+
+    @PostMapping("/register")
+    public ResponseEntity<Map<String, Object>> register(@RequestBody Map<String, String> request) {
+        String phone    = request.get("phone");
+        String fullName = request.get("fullName");
+        String email    = request.get("email");
+        String password = request.get("password");
+        String role     = request.get("role");     // optional — defaults to PASSENGER
+        Map<String, Object> response = authService.register(phone, fullName, email, password, role);
+        return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/verify-otp")
-    public ResponseEntity<Map<String, Object>> verifyOtp(@RequestBody Map<String, String> request) {
-        String phone = request.get("phone");
-        String otp = request.get("otp");
-        Map<String, Object> response = authService.verifyOtp(phone, otp);
+    // ─────────────────────────────────────────
+    // LOGIN
+    // ─────────────────────────────────────────
+
+    @PostMapping("/login")
+    public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> request) {
+        String identifier = request.get("email");   // accepts email or phone
+        if (identifier == null) identifier = request.get("phone");
+        String password = request.get("password");
+        Map<String, Object> response = authService.login(identifier, password);
         return ResponseEntity.ok(response);
     }
 }

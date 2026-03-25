@@ -33,7 +33,15 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/ws/seats/**", "/api/routes/**", "/api/vehicles/**", "/api/schedules/**").permitAll()
+                        // Public endpoints
+                        .requestMatchers(
+                                "/api/auth/**",
+                                "/ws/seats/**",
+                                "/api/routes/**",
+                                "/api/vehicles/**",
+                                "/api/schedules/**"
+                        ).permitAll()
+                        // Protected endpoints
                         .requestMatchers("/api/seats/lock", "/api/admin/**", "/api/driver/**").authenticated()
                         .anyRequest().authenticated()
                 )
@@ -49,14 +57,14 @@ public class SecurityConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("*"));
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true);
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("*"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
+        source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 }
