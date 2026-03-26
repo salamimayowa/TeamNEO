@@ -1,9 +1,23 @@
+import { Navigate, Route, Routes } from 'react-router-dom';
+import CheckoutPage from './pages/CheckoutPage.jsx';
+import MainLayout from './components/MainLayout.jsx';
+import DriverScannerPage from './pages/DriverScannerPage.jsx';
+import HomePage from './pages/HomePage.jsx';
+import MyTicketsPage from './pages/MyTicketsPage.jsx';
+import TicketSuccessPage from './pages/TicketSuccessPage.jsx';
+
 function App() {
   return (
-    <div>
-      <h1>Team NEO</h1>
-      <p>Frontend is alive 👀</p>
-    </div>
+    <Routes>
+      <Route element={<MainLayout />}>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/checkout" element={<CheckoutPage />} />
+        <Route path="/ticket" element={<TicketSuccessPage />} />
+        <Route path="/tickets" element={<MyTicketsPage />} />
+        <Route path="/scanner" element={<DriverScannerPage />} />
+      </Route>
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
 

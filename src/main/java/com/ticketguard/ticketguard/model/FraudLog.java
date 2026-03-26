@@ -13,5 +13,5 @@ public class FraudLog {
     private String phone;
     private String ipAddress;
     private String reason;
-    private LocalDateTime timestamp = LocalDateTime.now();
+    private LocalDateTime timestamp;
 }
