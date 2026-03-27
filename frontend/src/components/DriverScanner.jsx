@@ -1,5 +1,6 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
+import api from '../api.js';
 
 const demoPassengers = ['Amina Bello', 'Chinedu Okafor', 'Fatima Musa'];
 
@@ -13,7 +14,32 @@ function DriverScanner() {
   const [cameraError, setCameraError] = useState('');
   const [result, setResult] = useState(null);
 
-  const showMockResult = (ticketValue) => {
+  const tryBackendVerification = useCallback(async (ticketId) => {
+    try {
+      const response = await api.post('/api/driver/verify-ticket', { ticketId });
+      const payload = response?.data;
+
+      if (payload?.valid) {
+        return {
+          status: 'valid',
+          message: `VALID - ${payload?.passengerName || 'Passenger'}`,
+        };
+      }
+
+      if (payload?.valid === false) {
+        return {
+          status: 'invalid',
+          message: 'INVALID / FRAUD',
+        };
+      }
+
+      return null;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const showMockResult = useCallback((ticketValue) => {
     toggleResultRef.current = !toggleResultRef.current;
 
     if (toggleResultRef.current) {
@@ -30,7 +56,18 @@ function DriverScanner() {
       status: 'invalid',
       message: 'INVALID / FRAUD',
     });
-  };
+  }, []);
+
+  const runVerification = useCallback(async (ticketId) => {
+    const backendResult = await tryBackendVerification(ticketId);
+
+    if (backendResult) {
+      setResult(backendResult);
+      return;
+    }
+
+    showMockResult(ticketId);
+  }, [showMockResult, tryBackendVerification]);
 
   useEffect(() => {
     const scanner = new Html5Qrcode(`driver-scanner-${scannerId}`);
@@ -44,14 +81,14 @@ function DriverScanner() {
           qrbox: { width: 240, height: 240 },
           aspectRatio: 1,
         },
-        (decodedText) => {
+        async (decodedText) => {
           if (scanLockedRef.current) {
             return;
           }
 
           scanLockedRef.current = true;
           setManualTicketId(decodedText);
-          showMockResult(decodedText);
+          await runVerification(decodedText);
         },
         () => {
           // Ignore frame-level scan failures while camera is active.
@@ -78,15 +115,15 @@ function DriverScanner() {
           });
         });
     };
-  }, [scannerId]);
+  }, [runVerification, scannerId]);
 
-  const handleVerifyManual = () => {
+  const handleVerifyManual = async () => {
     if (!manualTicketId.trim()) {
       return;
     }
 
     scanLockedRef.current = true;
-    showMockResult(manualTicketId.trim());
+    await runVerification(manualTicketId.trim());
   };
 
   const closeResult = () => {

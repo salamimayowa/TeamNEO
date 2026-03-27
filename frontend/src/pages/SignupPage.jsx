@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { EyeOff } from 'lucide-react';
 import AuthLayout from '../components/AuthLayout.jsx';
 import AuthCard from '../components/AuthCard.jsx';
-import SocialLoginButtons from '../components/SocialLoginButtons.jsx';
 import api from '../api.js';
 
 function SignupPage() {
@@ -13,7 +12,6 @@ function SignupPage() {
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('PASSENGER');
   const [password, setPassword] = useState('');
-  const [acceptTerms, setAcceptTerms] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -22,11 +20,6 @@ function SignupPage() {
 
     if (!fullName.trim() || !phone.trim() || !email.trim() || !password.trim()) {
       setErrorMessage('Full name, phone, email, and password are required.');
-      return;
-    }
-
-    if (!acceptTerms) {
-      setErrorMessage('Please accept the Terms of Service to continue.');
       return;
     }
 
@@ -53,10 +46,18 @@ function SignupPage() {
         data: error?.response?.data,
         fullError: error,
       });
+      const status = error?.response?.status;
       const fallbackMessage = 'Unable to create account. Please try again.';
-      const serverMessage = error?.response?.data?.message || 
-                           (typeof error?.response?.data === 'string' ? error?.response?.data : null);
-      setErrorMessage(serverMessage || error?.message || fallbackMessage);
+      const serverMessage = error?.response?.data?.message ||
+        (typeof error?.response?.data === 'string' ? error?.response?.data : null);
+
+      if (error?.code === 'ECONNABORTED') {
+        setErrorMessage('Server took too long to respond. Please try again in a few seconds.');
+      } else if (status === 403) {
+        setErrorMessage('This email or phone may already be registered. Try logging in or use different details.');
+      } else {
+        setErrorMessage(serverMessage || error?.message || fallbackMessage);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -151,21 +152,6 @@ function SignupPage() {
             </div>
           </div>
 
-          <label className="flex items-start gap-2 text-sm text-slate-400">
-            <input
-              type="checkbox"
-              checked={acceptTerms}
-              onChange={(event) => setAcceptTerms(event.target.checked)}
-              className="mt-1 accent-[#3b82f6]"
-            />
-            <span>
-              I agree to the{' '}
-              <button type="button" className="font-medium text-[#3b82f6]">
-                Terms of Service
-              </button>
-            </span>
-          </label>
-
           {errorMessage && (
             <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700">
               {errorMessage}
@@ -180,8 +166,6 @@ function SignupPage() {
             {isSubmitting ? 'Creating account... (may take up to 30s)' : 'Create account'}
           </button>
         </form>
-
-        <SocialLoginButtons />
 
         <p className="mt-5 text-center text-sm text-slate-500">
           Already have an account?{' '}

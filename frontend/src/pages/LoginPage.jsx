@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { EyeOff } from 'lucide-react';
 import AuthLayout from '../components/AuthLayout.jsx';
 import AuthCard from '../components/AuthCard.jsx';
-import SocialLoginButtons from '../components/SocialLoginButtons.jsx';
 import api from '../api.js';
 
 function LoginPage() {
@@ -17,7 +16,7 @@ function LoginPage() {
     event.preventDefault();
 
     if (!identifier.trim() || !password.trim()) {
-      setErrorMessage('Phone and password are required.');
+      setErrorMessage('Email or phone and password are required.');
       return;
     }
 
@@ -27,12 +26,14 @@ function LoginPage() {
     try {
       const trimmedIdentifier = identifier.trim();
       const response = await api.post('/api/auth/login', {
-        phone: trimmedIdentifier,
+        email: trimmedIdentifier,
         password,
       });
 
       const token = response?.data?.token;
       const fullName = response?.data?.fullName;
+      const phone = response?.data?.phone;
+      const role = response?.data?.role;
 
       if (!token) {
         setErrorMessage('Login succeeded but no token was returned by the server.');
@@ -40,23 +41,38 @@ function LoginPage() {
       }
 
       localStorage.setItem('token', token);
-      localStorage.setItem('phone', trimmedIdentifier);
+      if (phone) {
+        localStorage.setItem('phone', phone);
+      }
       if (fullName) {
         localStorage.setItem('fullName', fullName);
+      }
+      if (role) {
+        localStorage.setItem('role', role);
       }
 
       navigate('/home');
     } catch (error) {
       console.error('Login error details:', {
         status: error?.response?.status,
+        baseURL: error?.config?.baseURL,
+        url: error?.config?.url,
         message: error?.response?.data?.message,
         data: error?.response?.data,
         fullError: error,
       });
+      const status = error?.response?.status;
       const fallbackMessage = 'Unable to login. Please check your details and try again.';
-      const serverMessage = error?.response?.data?.message || 
-                           (typeof error?.response?.data === 'string' ? error?.response?.data : null);
-      setErrorMessage(serverMessage || error?.message || fallbackMessage);
+      const serverMessage = error?.response?.data?.message ||
+        (typeof error?.response?.data === 'string' ? error?.response?.data : null);
+
+      if (error?.code === 'ECONNABORTED') {
+        setErrorMessage('Server took too long to respond. Please try again in a few seconds.');
+      } else if (status === 403) {
+        setErrorMessage('Invalid email/phone or password. Please check your details and try again.');
+      } else {
+        setErrorMessage(serverMessage || error?.message || fallbackMessage);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -68,13 +84,13 @@ function LoginPage() {
         <form className="space-y-3" onSubmit={handleSubmit}>
           <div>
             <label className="mb-1 block text-md font-medium text-slate-800">
-              Phone Number
+              Email or Phone Number
             </label>
             <input
               type="text"
               value={identifier}
               onChange={(event) => setIdentifier(event.target.value)}
-              placeholder="08022334455"
+              placeholder="johndoe@gmail.com or 08022334455"
               className="h-12 w-full rounded-full border-none bg-[#f5f7fb] px-6 text-base text-slate-700 outline-none ring-1 ring-transparent placeholder:text-slate-400 focus:ring-2 focus:ring-[#3b82f6]"
             />
           </div>
@@ -97,17 +113,6 @@ function LoginPage() {
             </div>
           </div>
 
-          <div className="flex items-center justify-between gap-3 text-sm">
-            <label className="flex items-center gap-2 text-slate-400">
-              <input type="checkbox" className="accent-[#3b82f6]" />
-              Remember me
-            </label>
-
-            <button type="button" className="font-medium text-[#3b82f6]">
-              Forgot password?
-            </button>
-          </div>
-
           {errorMessage && (
             <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700">
               {errorMessage}
@@ -122,8 +127,6 @@ function LoginPage() {
             {isSubmitting ? 'Logging in... (may take up to 30s)' : 'Login'}
           </button>
         </form>
-
-        <SocialLoginButtons />
 
         <p className="mt-5 text-center text-sm text-slate-500">
           Don’t have an account?{' '}

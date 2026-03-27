@@ -9,7 +9,10 @@ const navItems = [
 
 function MainLayout() {
   const { pathname } = useLocation();
-  const hideBottomNav = pathname === '/checkout' || pathname === '/ticket';
+  const hideBottomNav =
+    pathname === '/checkout' ||
+    pathname === '/ticket' ||
+    pathname.startsWith('/seat-map/');
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] px-4 py-4 sm:py-8">
