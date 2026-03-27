@@ -32,7 +32,7 @@ function SignupPage() {
         phone: phone.trim(),
         email: email.trim().toLowerCase(),
         password,
-        role,
+        role: String(role).toUpperCase(),
       };
 
       console.log('Sending signup payload:', payload);
@@ -109,28 +109,40 @@ function SignupPage() {
           <div>
             <label className="mb-2 block text-md font-medium text-slate-800">Account Type</label>
             <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => setRole('PASSENGER')}
-                className={`h-11 rounded-full border-2 text-sm font-semibold transition ${
+              <label
+                className={`flex h-11 cursor-pointer items-center justify-center rounded-full border-2 text-sm font-semibold transition ${
                   role === 'PASSENGER'
                     ? 'border-[#3b82f6] bg-[#3b82f6] text-white'
                     : 'border-slate-300 bg-white text-slate-700 hover:border-[#3b82f6]'
                 }`}
               >
+                <input
+                  type="radio"
+                  name="role"
+                  value="PASSENGER"
+                  checked={role === 'PASSENGER'}
+                  onChange={(event) => setRole(event.target.value)}
+                  className="sr-only"
+                />
                 Passenger
-              </button>
-              <button
-                type="button"
-                onClick={() => setRole('DRIVER')}
-                className={`h-11 rounded-full border-2 text-sm font-semibold transition ${
+              </label>
+              <label
+                className={`flex h-11 cursor-pointer items-center justify-center rounded-full border-2 text-sm font-semibold transition ${
                   role === 'DRIVER'
                     ? 'border-[#3b82f6] bg-[#3b82f6] text-white'
                     : 'border-slate-300 bg-white text-slate-700 hover:border-[#3b82f6]'
                 }`}
               >
+                <input
+                  type="radio"
+                  name="role"
+                  value="DRIVER"
+                  checked={role === 'DRIVER'}
+                  onChange={(event) => setRole(event.target.value)}
+                  className="sr-only"
+                />
                 Driver
-              </button>
+              </label>
             </div>
           </div>
 
@@ -163,7 +175,7 @@ function SignupPage() {
             disabled={isSubmitting}
             className="h-12 w-full rounded-full bg-[#3b82f6] text-lg font-semibold text-white transition hover:bg-[#2563eb] disabled:bg-slate-400"
           >
-            {isSubmitting ? 'Creating account... (may take up to 30s)' : 'Create account'}
+            {isSubmitting ? 'Creating account...' : 'Create account'}
           </button>
         </form>
 

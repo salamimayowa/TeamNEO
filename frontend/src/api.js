@@ -15,6 +15,11 @@ api.interceptors.request.use(
     const requestUrl = String(config.url || '');
     const isAuthRequest = requestUrl.includes('/api/auth/');
 
+    if (isAuthRequest) {
+      // Let auth requests wait indefinitely because backend can take longer to respond.
+      config.timeout = 0;
+    }
+
     if (token && !isAuthRequest) {
       config.headers = config.headers ?? {};
       config.headers.Authorization = `Bearer ${token}`;

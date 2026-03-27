@@ -124,7 +124,7 @@ function LoginPage() {
             disabled={isSubmitting}
             className="h-12 w-full rounded-full bg-[#3b82f6] text-lg font-semibold text-white transition hover:bg-[#2563eb] disabled:bg-slate-400"
           >
-            {isSubmitting ? 'Logging in... (may take up to 30s)' : 'Login'}
+            {isSubmitting ? 'Logging in...' : 'Login'}
           </button>
         </form>
 
