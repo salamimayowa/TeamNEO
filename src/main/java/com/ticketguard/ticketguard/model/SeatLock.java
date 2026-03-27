@@ -17,4 +17,20 @@ public class SeatLock {
     private String status = "LOCKED"; // LOCKED, USED
     private LocalDateTime lockedAt = LocalDateTime.now();
     private double price;
+
+    public Long getScheduleId() {
+        return scheduleId;
+    }
+
+    public String getSeatNumber() {
+        return seatNumber;
+    }
+
+    public String getUserPhone() {
+        return userPhone;
+    }
+
+    public String getStatus() {
+        return status;
+    }
 }
