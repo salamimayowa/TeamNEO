@@ -1,6 +1,5 @@
 package com.ticketguard.ticketguard.controller;
 
-
 import com.ticketguard.ticketguard.model.*;
 import com.ticketguard.ticketguard.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -17,21 +16,50 @@ public class CrudController {
     private final VehicleRepository vehicleRepository;
     private final ScheduleRepository scheduleRepository;
 
-    // Routes
+    // ─────────────────────────────────────────
+    // ROUTES
+    // ─────────────────────────────────────────
+
     @GetMapping("/routes")
-    public List<Route> getRoutes() { return routeRepository.findAll(); }
+    public List<Route> getRoutes() {
+        return routeRepository.findAll();
+    }
+
     @PostMapping("/routes")
-    public Route createRoute(@RequestBody Route route) { return routeRepository.save(route); }
+    public Route createRoute(@RequestBody Route route) {
+        return routeRepository.save(route);
+    }
 
-    // Vehicles
+    // ─────────────────────────────────────────
+    // VEHICLES
+    // ─────────────────────────────────────────
+
     @GetMapping("/vehicles")
-    public List<Vehicle> getVehicles() { return vehicleRepository.findAll(); }
-    @PostMapping("/vehicles")
-    public Vehicle createVehicle(@RequestBody Vehicle vehicle) { return vehicleRepository.save(vehicle); }
+    public List<Vehicle> getVehicles() {
+        return vehicleRepository.findAll();
+    }
 
-    // Schedules
+    @PostMapping("/vehicles")
+    public Vehicle createVehicle(@RequestBody Vehicle vehicle) {
+        return vehicleRepository.save(vehicle);
+    }
+
+    // ─────────────────────────────────────────
+    // SCHEDULES
+    // ─────────────────────────────────────────
+
     @GetMapping("/schedules")
-    public List<Schedule> getSchedules() { return scheduleRepository.findAll(); }
+    public List<Schedule> getSchedules() {
+        return scheduleRepository.findAll();
+    }
+
+    @GetMapping("/schedules/available")
+    public List<Schedule> getAvailableSchedules() {
+        return scheduleRepository.findByStatus("AVAILABLE");
+    }
+
     @PostMapping("/schedules")
-    public Schedule createSchedule(@RequestBody Schedule schedule) { return scheduleRepository.save(schedule); }
+    public Schedule createSchedule(@RequestBody Schedule schedule) {
+        return scheduleRepository.save(schedule);
+    }
 }

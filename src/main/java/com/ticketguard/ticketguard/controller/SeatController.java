@@ -1,11 +1,13 @@
 package com.ticketguard.ticketguard.controller;
 
+import com.ticketguard.ticketguard.model.SeatLock;
 import com.ticketguard.ticketguard.service.FraudService;
 import com.ticketguard.ticketguard.service.SeatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -16,6 +18,10 @@ public class SeatController {
     private final SeatService seatService;
     private final FraudService fraudService;
 
+    // ─────────────────────────────────────────
+    // LOCK A SEAT
+    // ─────────────────────────────────────────
+
     @PostMapping("/lock")
     public ResponseEntity<String> lockSeat(
             @RequestBody Map<String, Object> request,
@@ -24,8 +30,6 @@ public class SeatController {
         Long scheduleId = Long.valueOf(request.get("scheduleId").toString());
         String seatNumber = request.get("seatNumber").toString();
         String userPhone = request.get("phone").toString();
-
-        // Price is optional — defaults to 0 if not provided
         double price = request.containsKey("price")
                 ? Double.parseDouble(request.get("price").toString())
                 : 0.0;
@@ -35,6 +39,40 @@ public class SeatController {
         }
 
         seatService.lockSeat(scheduleId, seatNumber, userPhone, price);
-        return ResponseEntity.ok("Seat locked successfully and broadcasted in real-time");
+        return ResponseEntity.ok("Seat " + seatNumber + " locked successfully.");
+    }
+
+    // ─────────────────────────────────────────
+    // UNLOCK A SEAT (re-pick)
+    // ─────────────────────────────────────────
+
+    @PostMapping("/unlock")
+    public ResponseEntity<String> unlockSeat(
+            @RequestBody Map<String, Object> request) {
+
+        Long scheduleId = Long.valueOf(request.get("scheduleId").toString());
+        String seatNumber = request.get("seatNumber").toString();
+        String userPhone = request.get("phone").toString();
+
+        seatService.unlockSeat(scheduleId, seatNumber, userPhone);
+        return ResponseEntity.ok("Seat " + seatNumber + " unlocked. You can now pick another seat.");
+    }
+
+    // ─────────────────────────────────────────
+    // GET SEAT MAP FOR A SCHEDULE
+    // ─────────────────────────────────────────
+
+    @GetMapping("/map/{scheduleId}")
+    public ResponseEntity<Map<String, Object>> getSeatMap(@PathVariable Long scheduleId) {
+        return ResponseEntity.ok(seatService.getSeatMap(scheduleId));
+    }
+
+    // ─────────────────────────────────────────
+    // GET MY LOCKED SEATS
+    // ─────────────────────────────────────────
+
+    @GetMapping("/my-seats/{phone}")
+    public ResponseEntity<List<SeatLock>> getMySeats(@PathVariable String phone) {
+        return ResponseEntity.ok(seatService.getMySeats(phone));
     }
 }

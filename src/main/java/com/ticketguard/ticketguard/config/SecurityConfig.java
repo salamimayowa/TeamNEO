@@ -2,6 +2,7 @@ package com.ticketguard.ticketguard.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -31,18 +32,37 @@ public class SecurityConfig {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Public endpoints
-                        .requestMatchers(
-                                "/api/auth/**",
-                                "/ws/seats/**",
-                                "/api/routes/**",
-                                "/api/vehicles/**",
-                                "/api/schedules/**"
-                        ).permitAll()
-                        // Protected endpoints
-                        .requestMatchers("/api/seats/lock", "/api/admin/**", "/api/driver/**").authenticated()
+
+                        // ✅ Public — no token needed
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/ws/seats/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/routes/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/vehicles/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/schedules/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/seats/map/**").permitAll()
+
+                        // 🔒 OPERATOR + ADMIN can create routes, vehicles, schedules
+                        .requestMatchers(HttpMethod.POST, "/api/routes/**")
+                        .hasAnyRole("OPERATOR", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/vehicles/**")
+                        .hasAnyRole("OPERATOR", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/schedules/**")
+                        .hasAnyRole("OPERATOR", "ADMIN")
+
+                        // 🔒 PASSENGER + DRIVER + ADMIN can lock and unlock seats
+                        .requestMatchers("/api/seats/lock").hasAnyRole("PASSENGER", "DRIVER", "ADMIN")
+                        .requestMatchers("/api/seats/unlock").hasAnyRole("PASSENGER", "DRIVER", "ADMIN")
+                        .requestMatchers("/api/seats/my-seats/**").hasAnyRole("PASSENGER", "DRIVER", "ADMIN")
+
+                        // 🔒 DRIVER + ADMIN only
+                        .requestMatchers("/api/driver/**").hasAnyRole("DRIVER", "ADMIN")
+
+                        // 🔒 ADMIN only
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
@@ -61,7 +81,7 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(List.of("*"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(true);
+        configuration.setAllowCredentials(false);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

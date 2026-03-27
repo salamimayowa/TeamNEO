@@ -14,8 +14,7 @@ public class SeatLock {
     private Long scheduleId;
     private String seatNumber;
     private String userPhone;
-    private String status = "LOCKED"; // LOCKED, USED, EXPIRED
+    private String status = "LOCKED"; // LOCKED, USED
     private LocalDateTime lockedAt = LocalDateTime.now();
-    private LocalDateTime expiresAt;
-    private double price; // fare paid for this seat
+    private double price;
 }
